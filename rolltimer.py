@@ -19,6 +19,9 @@ from serial.tools.list_ports import comports
 ######################### IMAGE PROCESSING ####################################
 from PIL import Image
 
+######################## SOUND PROCESSING #####################################
+import wave, struct, math, random
+
 # Object for access to the serial port
 ser = serial.Serial(timeout=0)
 SER_BAUDRATE = 115200
@@ -201,8 +204,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
        ################# FILE DIALOG ########################################
 
-        self.backgroundButton.clicked.connect(self.showDialog)
-        self.alarmsoundButton.clicked.connect(self.showDialog)
+        self.backgroundButton.clicked.connect(self.showPNGDialog)
+        self.alarmsoundButton.clicked.connect(self.showWAVDialog)
 
         # Update combobox ports
         self.update_com_ports()
@@ -213,19 +216,35 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.displayTime)
         self.timer.start()
 
-    def showDialog(self):
+    def showWAVDialog(self):
 
         home_dir = str(Path.home())
-        fname = QFileDialog.getOpenFileName(self, 'RollTimer', home_dir)
+        fname = QFileDialog.getOpenFileName(self, 'RollTimer', home_dir, \
+                 "WAV (*.wav *.WAV)")
 
-        if fname[0]:
-            f = open(fname[0], 'r', encoding='utf-8')
-            print(fname[0])
+        print(open(fname[0], 'rb').read())
+        #ser.write(open((fname[0]).read()))
 
-            with f:
-                data = f.read()
-                print(data)
-                # ser.write(open("target.txt","rb").read())
+    def showPNGDialog(self):
+
+        home_dir = str(Path.home())
+        fname = QFileDialog.getOpenFileName(self, 'RollTimer', home_dir, \
+                 "Image (*.png *.PNG)")
+
+        try:
+            #Relative Path
+            img = Image.open(fname[0])
+            print(img.mode)
+
+            img = img.convert(mode ="1")
+            
+            #converting image to bitmap
+            print(img.tobitmap())
+            
+            #print(type(img.tobitmap()))
+        except IOError: 
+            pass
+
 
     def displayTime(self):
         self.timeLabel.setText(QtCore.QDateTime.currentDateTime().toString())
